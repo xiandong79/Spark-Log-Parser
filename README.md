@@ -26,3 +26,37 @@ https://jsonformatter.org
   }
 }
 ```
+
+```
+{
+  "Event": "SparkListenerJobStart",
+  "Job ID": 8,
+  "Submission Time": 1499523114857,
+  "Stage Infos": [
+    {
+      "Stage ID": 8,
+      "Stage Attempt ID": 0,
+      "Stage Name": "collect at KMeans.scala:446",
+      "Number of Tasks": 32,
+      "RDD Info": [
+        {
+          "RDD ID": 24,
+          "Name": "MapPartitionsRDD",
+          "Scope": "{\"id\":\"57\",\"name\":\"mapPartitionsWithIndex\"}",
+          "Callsite": "mapPartitionsWithIndex at KMeans.scala:438",
+          "Parent IDs": [
+            23
+          ],
+          "Storage Level": {
+            "Use Disk": false,
+            "Use Memory": false,
+            "Deserialized": false,
+            "Replication": 1
+          },
+          "Number of Partitions": 32,
+          "Number of Cached Partitions": 0,
+          "Memory Size": 0,
+          "Disk Size": 0
+        },
+   ...     
+```

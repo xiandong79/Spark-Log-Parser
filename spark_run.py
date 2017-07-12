@@ -80,11 +80,96 @@ class SparkRun:
                 print("ERROR: Duplicate job ID!")
                 return
             job = Job(data) # that class Job
+            # job = return s
             self.jobs[job_id] = job # record into the `dict`
 
+        def do_SparkListenerStageSubmitted(self, data):
+            pass
 
-def correlate
+        def do_SparkListenerExecutorAdded(self, data):
+            exec_id = data["Executor ID"]
+            self.executors[exec_id] = Executor(data)
 
-def generate_report
+        def do_SparkListenerTaskStart(self, data):
+            task_id = data["Task Info"]["Task ID"]
+            self.tasks[task_id] = Task(data)
 
-def get_app_name
+        def do_SparkListenerTaskEnd(self, data):
+            task_id = data["Task Info"]["Task ID"]
+            self.tasks[task_id].finish(data)
+
+        def do_SparkListenerBlockManagerRemoved(self, data):
+            pass
+
+        def do_SparkListenerStageCompleted(self, data):
+            stage_id = data["Stage Info"]["Stage ID"]
+            for j in self.jobs.values():
+                for s in j.stages: # class Stage in job.py
+                    if s.stage_id == stage_id:
+                        s.complete(data)
+
+        def do_SparkListenerJobEnd(self, data):
+            job_id = data["Job ID"]
+            self.jobs[job_id].complete(data)
+
+        def correlate(self):
+            # Link block managers and executors
+            for bm in self.block_managers:
+                if bm.executorr_id != '<driver>':
+                    self.executors[bm.executor_id].block_managers.append(bm)
+
+            for t in self.tasks.values()values():
+                self.executors[t.executor_id].task.append(t)
+                for j in self.jobs.values():
+                    for s in j.stages:
+                        if s.stage_id == t.stage_id:
+                            s.tasks.append(t)
+
+            self.parsed_data["num_failed_tasks"] = 0
+            self.parsed_data["num_success_tasks"] = 0
+            for t in sels.tasks.values():
+                if t.end_reason != "Success":
+                    self.parsed_data["num_failed_tasks"] += 1
+                else:
+                    self.parsed_data["num_success_tasks"] += 1
+
+            # Total average and stddev task run time
+            all_runtimes = [ x.finish_time - x.launch_time for x in self.tasks.values() if x.end_reason == "Success" ]
+            all_runtimes = array(all_runtimes)
+            self.parsed_data["tot_avg_task_runtime"] = all_runtimes.mean()
+            self.parsed_data["tot_std_task_runtime"] = all_runtimes.std()
+            self.parsed_data["min_task_runtime"] = all_runtimes.min()
+            self.parsed_data["max_task_runtime"] = all_runtimes.max()
+
+        def generate_report(self):
+            # return s
+            s = "Report for '{}' execution {}\n".format(self.parsed_data["app_name"], self.parsed_data["app_id"])
+            s += "Spark version: {}\n".format(self.parsed_data["spark_version"])
+            s += "Java version: {}\n".format(self.parsed_data["java_version"])
+            s += "Start time: {}\n".format(datetime.fromtimestamp(self.parsed_data["app_start_timestamp"]/1000))
+            s += "Commandline: {}\n\n".format(self.parsed_data["commandline"])
+            s += "---> Jobs <---\n"
+            for j in self.jobs.values():
+                s += j.report(0)
+                s += "\n"
+            s += "---> Tasks <---\n"
+            s += "Total tasks: {}\n".format(len(self.tasks))
+            s += "Successful tasks: {}\n".format(self.parsed_data["num_success_tasks"])
+            s += "Failed tasks: {}\n".format(self.parsed_data["num_failed_tasks"])
+            s += "Task average runtime: {} ({} stddev)\n".format(self.parsed_data["tot_avg_task_runtime"], self.parsed_data["tot_std_task_runtime"])
+            s += "Task min/max runtime: {} min, {} max\n".format(self.parsed_data["min_task_runtime"], self.parsed_data["max_task_runtime"])
+            for t in self.tasks.values():
+                s += t.report(0)
+                s += "\n"
+            s += "---> Executors <---\n"
+            for e in self.executors.values():
+                s += e.report(0)
+                s += "\n"
+    #        s += "---> Block managers <---\n"
+    #        for bm in self.block_managers:
+    #            s += bm.report(0)
+            print('generate_report is finished.')
+            return s
+
+        def get_app_name(self):
+            return self.parsed_data["app_id"]
