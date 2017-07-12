@@ -1,14 +1,15 @@
 # class/function have been used in spark_run.py
 
-#1. job = Job(data) # that class Job
+# 1. job = Job(data) # that class Job
 
-#2. self.jobs[job_id] = job # record into the `dict`
+# 2. self.jobs[job_id] = job # record into the `dict`
 
-#3. j.report(0)
+# 3. j.report(0)
 
-#4. s.complete(data) in Class Stage
+# 4. s.complete(data) in Class Stage
 
 from datetime import datetime
+
 
 class Job:
     def __init__(self, start_data):
@@ -31,7 +32,7 @@ class Job:
         self.job_id = start_data["Job ID"]
         self.stages = []
         for stage_data in start_data["Stage Infos"]:
-            self.stages.append(Stage(stage_data)) # class Stage
+            self.stages.append(Stage(stage_data))   # class Stage
         self.submission_time = start_data["Submission Time"]
 
         self.result = None
@@ -55,19 +56,19 @@ class Job:
         self.end_time = data["Completion Time"]
 
     def report(self, indent):
-        pfx = " " * indent # indent means 'tab'
+        pfx = " " * indent
+        # indent means 'tab'
         s = pfx + "Job {}\n".format(self.job_id)
         indent += 1
         pfx = " " * indent
         s += pfx + "Submission time: {}\n".format(datetime.fromtimestamp(self.submission_time/1000))
-        s += pfx + "Run time: {}ms\n".format(self.end_time - self.submission_time)
+        s += pfx + "Run time: {}ms \n".format(int(self.end_time or 0) - int(self.submission_time))
         s += pfx + "Result: {}\n".format(self.result)
         s += pfx + "Number of stages: {}\n".format(len(self.stages))
         for stage in self.stages:
             s += stage.report(indent)
             # self.stages.append(Stage(stage_data))
         return s
-
 
 
 class Stage:
@@ -77,7 +78,8 @@ class Stage:
         self.task_num = stage_data["Number of Tasks"]
         self.RDDs = []
         for rdd_data in stage_data["RDD Info"]:
-            self.RDDs.append(RDD(rdd_data)) # class RDD is needed
+            self.RDDs.append(RDD(rdd_data))
+            # class RDD is needed
         self.name = stage_data["Stage Name"]
         self.tasks = []
 
@@ -95,10 +97,11 @@ class Stage:
         pfx = " " * indent
         s += pfx + "Number of tasks: {}\n".format(self.task_num)
         s += pfx + "Number of executed tasks: {}\n".format(len(self.tasks))
-        s += pfx + "Completion time: {}ms\n".format(self.completion_time - self.submission_time)
+        s += pfx + "Completion time: {}ms\n".format(int(self.completion_time or 0) - int(self.submission_time or 0))
         for rdd in self.RDDs:
             s += rdd.report(indent)
         return s
+
 
 class RDD:
     """
@@ -123,6 +126,7 @@ class RDD:
           "Disk Size": 0
         }, ...
     """
+
     def __init__(self, rdd_data):
         self.rdd_id = rdd_data["RDD ID"]
         self.disk_size = rdd_data["Disk Size"]
